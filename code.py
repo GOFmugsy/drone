@@ -12,7 +12,7 @@ import neopixel
 step = 0.0001
 i2c = board.I2C()
 sensor = adafruit_bno055.BNO055_I2C(i2c)
-throttle = 1 # should be pid to distance sensor eventually
+throttle = 0.9 # should be pid to distance sensor eventually
 kit = MotorKit()
 pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
 pixel.brightness = 0.3
@@ -49,15 +49,15 @@ def throttleDown(kit, target):
 # 4  3
 def balanceTest(kit, sensor, target):
     euler = sensor.euler
-    pitchpid = PID(5, 20, 0.1, setpoint=0.0556) # 5deg
-    rollpid = PID(5, 20, 0.1, setpoint=0)
+    pitchpid = PID(1, 30, 0.1, setpoint=0.0222) # 5deg
+    rollpid = PID(2, 30, 0.1, setpoint=0)
     throttlepid = PID(25, 0, 0.1, setpoint=target)
     # print("yaw: {}".format(euler[0]))
     # print("roll: {}".format(euler[1]))
     # print("pitch: {}".format(euler[2]))
-    # prop1 = target - pitchpid(euler[2] / 90) - rollpid(euler[1] / 90) 
+    prop1 = target - pitchpid(euler[2] / 90) - rollpid(euler[1] / 90) 
     # prop1 = target - rollpid(euler[1] / 90) 
-    prop1 = target - pitchpid(euler[2] / 90) 
+    # prop1 = target - pitchpid(euler[2] / 90) 
     # if euler[2] < 0:
         # prop1 = prop1 - pitchpid(euler[1] / 90)
     # prop1 = throttlepid(prop1)
@@ -68,6 +68,7 @@ def balanceTest(kit, sensor, target):
     if prop1 < 0:
         prop1 = 0
     prop2 = target - pitchpid(euler[2] / 90) + rollpid(euler[1] / 90)
+    # prop2 = target - pitchpid(euler[2] / 90)
     # prop2 = throttlepid(prop2)
     if prop2 > 1.0:
         prop2 = 1.0
@@ -76,6 +77,7 @@ def balanceTest(kit, sensor, target):
     if prop2 < 0:
         prop2 = 0
     prop3 = target + pitchpid(euler[2] / 90) + rollpid(euler[1] / 90)
+    # prop3 = target + pitchpid(euler[2] / 90)
     # prop3 = throttlepid(prop3)
     if prop3 > 1.0:
         prop3 = 1.0
@@ -84,6 +86,7 @@ def balanceTest(kit, sensor, target):
     if prop3 < 0:
         prop3 = 0
     prop4 = target + pitchpid(euler[2] / 90) - rollpid(euler[1] / 90)
+    # prop4 = target + pitchpid(euler[2] / 90)
     # prop4 = throttlepid(prop4)
     if prop4 > 1.0:
         prop4 = 1.0
@@ -93,9 +96,9 @@ def balanceTest(kit, sensor, target):
         prop4 = 0
     # print("p2: " + str(prop2) + " p1: " + str(prop1) + "\np3: " + str(prop3) + " p4: " + str(prop4))
     kit.motor1.throttle = prop1
-    # kit.motor2.throttle = prop2
-    # kit.motor3.throttle = prop3
-    # kit.motor4.throttle = prop4
+    kit.motor2.throttle = prop2
+    kit.motor3.throttle = prop3
+    kit.motor4.throttle = prop4
 
 print("Startup")
 stopMotors(kit)
